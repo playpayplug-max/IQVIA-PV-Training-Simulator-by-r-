@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQVIA PV Training Simulator | Argus Safety</title>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        :root {
+            --argus-blue: #004a80;
+            --bg-gray: #d4d4d4;
+            --oracle-red: #d32f2f;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--slate-700);
+            background: linear-gradient(to bottom right, var(--slate-50), var(--slate-100));
+            min-height: 100vh;
+        }
+
+        /* --- LAYOUT COMPONENTS --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        @media (max-width: 768px) {
+            .grid-cols-2, .grid-cols-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        /* --- CARD COMPONENTS --- */
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--slate-200);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--slate-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--slate-600);
+            font-size: 0.875rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* --- BUTTON COMPONENTS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--argus-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #003a66;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--slate-700);
+            border: 1px solid var(--slate-300);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--slate-50);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* --- BADGE COMPONENTS --- */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-green {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-yellow {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-gray {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        /* --- TABLE COMPONENTS --- */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--slate-200);
+            font-weight: 600;
+            color: var(--slate-700);
+        }
+
+        .table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .table tr:hover {
+            background-color: var(--slate-50);
+        }
+
+        /* --- FORM COMPONENTS --- */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--slate-700);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--slate-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--argus-blue);
+            box-shadow: 0 0 0 3px rgba(0, 74, 128, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--slate-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--argus-blue);
+            box-shadow: 0 0 0 3px rgba(0, 74, 128, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--slate-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 200px;
+            transition: border-color 0.2s;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--argus-blue);
+            box-shadow: 0 0 0 3px rgba(0, 74, 128, 0.1);
+        }
+
+        /* --- TAB COMPONENTS --- */
+        .tabs {
+            width: 100%;
+        }
+
+        .tab-list {
+            display: flex;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .tab-trigger {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--slate-600);
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-trigger:hover {
+            color: var(--slate-900);
+            background-color: var(--slate-50);
+        }
+
+        .tab-trigger.active {
+            color: var(--argus-blue);
+            border-bottom-color: var(--argus-blue);
+        }
+
+        .tab-content {
+            padding: 1.5rem 0;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* --- MODAL COMPONENTS --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--slate-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--slate-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* --- UTILITY CLASSES --- */
+        .hidden {
+            display: none;
+        }
+
+        .block {
+            display: block;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .text-slate-600 {
+            color: var(--slate-600);
+        }
+
+        .text-slate-700 {
+            color: var(--slate-700);
+        }
+
+        .text-slate-900 {
+            color: var(--slate-900);
+        }
+
+        .bg-white {
+            background-color: white;
+        }
+
+        .bg-slate-50 {
+            background-color: var(--slate-50);
+        }
+
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .p-6 {
+            padding: 1.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .border {
+            border: 1px solid var(--slate-200);
+        }
+
+        .border-t {
+            border-top: 1px solid var(--slate-200);
+        }
+
+        .border-b {
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .rounded {
+            border-radius: 0.375rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .shadow-sm {
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .h-full {
+            height: 100%;
+        }
+
+        .min-h-screen {
+            min-height: 100vh;
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.75rem;
+            }
+            
+            .card-header, .card-content {
+                padding: 1rem;
+            }
+            
+            .modal {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+            }
+        }
+
+        /* --- SCROLLBAR STYLING --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--slate-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--slate-300);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--slate-400);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        /* --- SPECIFIC COMPONENT STYLES --- */
+        .stats-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stats-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-icon-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stats-icon-green {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .stats-icon-orange {
+            background-color: #fed7aa;
+            color: #9a3412;
+        }
+
+        .stats-icon-purple {
+            background-color: #e9d5ff;
+            color: #6b21a8;
+        }
+
+        .qc-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid;
+        }
+
+        .qc-item-correct {
+            background-color: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .qc-item-incorrect {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .qc-field-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .qc-field-value {
+            font-family: 'Courier New', monospace;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+
+        .qc-value-actual {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .qc-value-expected {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .header {
+            background-color: white;
+            border-bottom: 1px solid var(--slate-200);
+            padding: 0.75rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: var(--argus-blue);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .document-viewer {
+            background-color: #f8f9fa;
+            border: 1px solid var(--slate-200);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--slate-800);
+            border-bottom: 1px solid var(--slate-200);
+            padding-bottom: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--slate-500);
+        }
+
+        .empty-state-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            color: var(--slate-400);
+        }
+
+        .complexity-low {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .complexity-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .complexity-high {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="min-h-screen">
+            <!-- Header -->
+            <div class="header">
+                <div class="container">
+                    <div class="flex items-center justify-between">
+                        <div class="logo">
+                            <div class="logo-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold">IQVIA PV Training Simulator</h1>
+                                <p class="text-sm text-slate-600">Argus Safety™ Training Platform</p>
+                            </div>
+                        </div>
+                        <div class="badge badge-gray">User: Trainee_01</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="container">
+                <div class="space-y-6">
+                    <!-- Statistics Cards -->
+                    <div class="grid grid-cols-4">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="stats-card">
+                                    <div>
+                                        <p class="text-sm text-slate-600">Total Cases</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="total-cases">0</p>
+                                    </div>
+                                    <div class="stats-icon stats-icon-blue">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="stats-card">
+                                    <div>
+                                        <p class="text-sm text-slate-600">Completed</p>
+                                        <p class="text-2xl font-bold text-green-600" id="completed-cases">0</p>
+                                    </div>
+                                    <div class="stats-icon stats-icon-green">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="stats-card">
+                                    <div>
+                                        <p class="text-sm text-slate-600">Pending</p>
+                                        <p class="text-2xl font-bold text-orange-600" id="pending-cases">0</p>
+                                    </div>
+                                    <div class="stats-icon stats-icon-orange">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="stats-card">
+                                    <div>
+                                        <p class="text-sm text-slate-600">Avg Score</p>
+                                        <p class="text-2xl font-bold text-purple-600" id="avg-score">0%</p>
+                                    </div>
+                                    <div class="stats-icon stats-icon-purple">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Cases -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Available Worklist (Pending Cases)</h2>
+                            <p class="card-description">Select a case to begin data entry. Read the source document and enter data accurately.</p>
+                        </div>
+                        <div class="card-content">
+                            <div id="pending-cases-container">
+                                <div class="empty-state">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <p class="text-lg font-medium">Loading cases...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Cases -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Completed / Reviewed Cases</h2>
+                        </div>
+                        <div class="card-content">
+                            <div id="completed-cases-container">
+                                <div class="empty-state">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <p>No cases completed yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workstation View -->
+        <div id="workstation-view" class="min-h-screen hidden">
+            <!-- Header -->
+            <div class="header">
+                <div class="container">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                Back to Dashboard
+                            </button>
+                            <div class="border-l h-6"></div>
+                            <div>
+                                <h1 class="text-lg font-semibold text-slate-900">Case Workstation</h1>
+                                <p class="text-sm text-slate-600">Case ID: <span id="active-case-id">Not Loaded</span></p>
+                            </div>
+                        </div>
+                        <div class="badge badge-gray">User: Trainee_01</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="container">
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Source Document -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Source Document</h2>
+                            <p class="card-description">Read the source document carefully and extract all relevant information.</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="document-viewer" id="source-document">
+                                No document loaded
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Entry Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Argus Safety Data Entry</h2>
+                            <p class="card-description">Enter the extracted information accurately in the appropriate fields.</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="tabs">
+                                <div class="tab-list">
+                                    <button class="tab-trigger active" onclick="switchTab('general')">General</button>
+                                    <button class="tab-trigger" onclick="switchTab('patient')">Patient</button>
+                                    <button class="tab-trigger" onclick="switchTab('product')">Product</button>
+                                    <button class="tab-trigger" onclick="switchTab('event')">Event</button>
+                                </div>
+
+                                <div class="tab-content">
+                                    <!-- General Tab -->
+                                    <div id="general-tab" class="tab-panel active">
+                                        <div class="form-section">
+                                            <div class="form-group">
+                                                <label class="form-label" for="receipt-date">Receipt Date</label>
+                                                <input type="date" id="receipt-date" class="form-input">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="country">Country</label>
+                                                <select id="country" class="form-select">
+                                                    <option value="">--Select--</option>
+                                                    <option value="US">United States</option>
+                                                    <option value="UK">United Kingdom</option>
+                                                    <option value="IN">India</option>
+                                                    <option value="DE">Germany</option>
+                                                    <option value="FR">France</option>
+                                                    <option value="JP">Japan</option>
+                                                    <option value="AU">Australia</option>
+                                                    <option value="CA">Canada</option>
+                                                    <option value="BR">Brazil</option>
+                                                    <option value="CN">China</option>
+                                                    <option value="ZA">South Africa</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="report-type">Report Type</label>
+                                                <select id="report-type" class="form-select">
+                                                    <option value="Spontaneous">Spontaneous</option>
+                                                    <option value="Clinical Trial">Clinical Trial</option>
+                                                    <option value="Literature">Literature</option>
+                                                    <option value="Periodic Safety Update">PSUR</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Patient Tab -->
+                                    <div id="patient-tab" class="tab-panel">
+                                        <div class="form-section">
+                                            <div class="form-group">
+                                                <label class="form-label" for="patient-initials">Patient Initials</label>
+                                                <input type="text" id="patient-initials" class="form-input" placeholder="Enter patient initials">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="patient-age">Age</label>
+                                                <input type="text" id="patient-age" class="form-input" placeholder="Enter patient age">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="patient-gender">Gender</label>
+                                                <select id="patient-gender" class="form-select">
+                                                    <option value="">--Select--</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                    <option value="Unknown">Unknown</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Product Tab -->
+                                    <div id="product-tab" class="tab-panel">
+                                        <div class="form-section">
+                                            <div class="form-group">
+                                                <label class="form-label" for="product-name">Product Name</label>
+                                                <input type="text" id="product-name" class="form-input" placeholder="Enter product name">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Event Tab -->
+                                    <div id="event-tab" class="tab-panel">
+                                        <div class="form-section">
+                                            <div class="form-group">
+                                                <label class="form-label" for="reported-term">Reported Term (LLT)</label>
+                                                <input type="text" id="reported-term" class="form-input" placeholder="Enter reported term">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="meddra-pt">MedDRA PT (Coded)</label>
+                                                <div class="flex gap-2">
+                                                    <input type="text" id="meddra-pt" class="form-input" readonly placeholder="Auto-coded term will appear here">
+                                                    <button type="button" class="btn btn-secondary" onclick="autoCode()">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                                        </svg>
+                                                        Auto-Code
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="seriousness">Seriousness</label>
+                                                <select id="seriousness" class="form-select">
+                                                    <option value="No">Non-Serious</option>
+                                                    <option value="Yes">Serious (SAE)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-6 pt-6 border-t">
+                                <div class="flex gap-3">
+                                    <button class="btn btn-secondary" onclick="runQC()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                        </svg>
+                                        Run QC Check
+                                    </button>
+                                    <button class="btn btn-success" onclick="saveAndClose()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                            <polyline points="7 3 7 8 15 8"></polyline>
+                                        </svg>
+                                        Save & Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QC Modal -->
+        <div id="qc-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Quality Control (QC) Report</h2>
+                    <p class="text-sm text-slate-600">Review the validation results for your data entry.</p>
+                </div>
+                <div class="modal-body">
+                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-slate-900">QC Summary</h3>
+                                <p class="text-sm text-slate-600" id="qc-summary-message">Checking your entries...</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-slate-900" id="qc-accuracy">0%</div>
+                                <div class="text-sm text-slate-600">Accuracy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="qc-results" class="space-y-3">
+                        <!-- QC results will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeQCModal()">Keep Correcting</button>
+                    <button id="proceed-save-btn" class="btn btn-success hidden" onclick="proceedToSave()">Proceed to Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const app = {
+            currentView: 'dashboard',
+            activeCase: null,
+            completedCases: [],
+            formData: {
+                date: '',
+                country: '',
+                type: 'Spontaneous',
+                init: '',
+                age: '',
+                gen: '',
+                prod: '',
+                llt: '',
+                pt: '',
+                serious: 'No'
+            }
+        };
+
+        // Case Library
+        const caseLibrary = [
+            {
+                id: "IN-2025-001",
+                type: "Email",
+                complexity: "Low",
+                docText: "FROM: Dr. Smith (Boston Clinic)\nDATE: 2025-01-15\n\nPatient JS (Male, 45 years) was prescribed AMOXICILLIN for infection.\nTwo days later he developed a mild SKIN RASH.\nAction: Drug stopped. Patient recovered.\nThis is not serious.",
+                truth: {
+                    date: "2025-01-15", country: "US", type: "Spontaneous",
+                    init: "JS", age: "45", gen: "Male",
+                    prod: "AMOXICILLIN",
+                    llt: "SKIN RASH", pt: "Rash",
+                    serious: "No"
+                }
+            },
+            {
+                id: "UK-2025-889",
+                type: "Fax",
+                complexity: "High",
+                docText: "URGENT SAFETY REPORT - FAX\nReceived: 2025-02-20\nOrigin: London, UK\n\nSubject: Anaphylaxis case.\nPatient: Female, 30 yrs.\nDrug: IBUPROFEN 400mg.\n\nEvent: Patient took drug at 9AM. By 10AM, suffered ANAPHYLACTIC SHOCK. Hospitalized for 2 days.\n\nPlease process as Serious.",
+                truth: {
+                    date: "2025-02-20", country: "UK", type: "Spontaneous",
+                    init: "UNKNOWN", age: "30", gen: "Female",
+                    prod: "IBUPROFEN",
+                    llt: "ANAPHYLACTIC SHOCK", pt: "Anaphylactic shock",
+                    serious: "Yes"
+                }
+            },
+            {
+                id: "DE-CT-554",
+                type: "Clin Trial",
+                complexity: "Medium",
+                docText: "CLINICAL TRIAL SAE REPORT\nProtocol: 999-XYZ\nCenter: Berlin, Germany\nDate: 2025-03-10\n\nSubject ID: DE-01 (Initials: MK)\nAge: 60\nSex: Male\n\nIMP: INVESTIGATIONAL DRUG X\nEvent: MYOCARDIAL INFARCTION (Heart Attack).\nOutcome: Fatal.",
+                truth: {
+                    date: "2025-03-10", country: "DE", type: "Clinical Trial",
+                    init: "MK", age: "60", gen: "Male",
+                    prod: "INVESTIGATIONAL DRUG X",
+                    llt: "MYOCARDIAL INFARCTION", pt: "Myocardial infarction",
+                    serious: "Yes"
+                }
+            },
+            {
+                id: "US-2025-010",
+                type: "Email",
+                complexity: "Low",
+                docText: "E-mail from outpatient clinic\nDate: 2025-04-05\n\nPatient AB (F, 28) presented with severe nausea and vomiting after starting ZOPICLONE 7.5 mg for insomnia.\nSymptoms began within 24 hours and resolved after stopping the drug.\nNot hospitalized.",
+                truth: {
+                    date: "2025-04-05", country: "US", type: "Spontaneous",
+                    init: "AB", age: "28", gen: "Female",
+                    prod: "ZOPICLONE",
+                    llt: "NAUSEA AND VOMITING", pt: "Nausea",
+                    serious: "No"
+                }
+            },
+            {
+                id: "IN-2025-212",
+                type: "Hospital Note",
+                complexity: "Medium",
+                docText: "Hospital discharge summary\nDate: 2025-05-18\n\nPatient: R.K., Male, 52 yrs.\nIndication: Hypertension\nDrug: AMLODIPINE 5 mg daily.\nEvent: Developed peripheral edema; mild but persistent. Not serious. Continue monitoring.",
+                truth: {
+                    date: "2025-05-18", country: "IN", type: "Spontaneous",
+                    init: "RK", age: "52", gen: "Male",
+                    prod: "AMLODIPINE",
+                    llt: "PERIPHERAL EDEMA", pt: "Peripheral swelling",
+                    serious: "No"
+                }
+            },
+            {
+                id: "FR-2025-333",
+                type: "Fax",
+                complexity: "High",
+                docText: "URGENT: Pharmacovigilance\nReceived: 2025-06-02\nOrigin: Marseille, FR\n\nPatient: Mlle. L (F, 19)\nDrug: OCP (Combined oral contraceptive)\nEvent: Pulmonary embolism confirmed by CT. Hospitalized and anticoagulated. Serious.",
+                truth: {
+                    date: "2025-06-02", country: "FR", type: "Spontaneous",
+                    init: "L", age: "19", gen: "Female",
+                    prod: "COMBINED ORAL CONTRACEPTIVE",
+                    llt: "PULMONARY EMBOLISM", pt: "Pulmonary embolism",
+                    serious: "Yes"
+                }
+            },
+            {
+                id: "JP-2025-404",
+                type: "Email",
+                complexity: "Medium",
+                docText: "Clinic note\nDate: 2025-07-20\n\nPatient: S.T. (M, 67)\nDrug: STATIN X\nEvent: Elevated ALT/AST and jaundice. Admitted for observation; recovered after stopping medication. Serious (hospitalized).",
+                truth: {
+                    date: "2025-07-20", country: "JP", type: "Spontaneous",
+                    init: "ST", age: "67", gen: "Male",
+                    prod: "STATIN X",
+                    llt: "HEPATIC INJURY", pt: "Hepatic function abnormal",
+                    serious: "Yes"
+                }
+            },
+            {
+                id: "US-2025-555",
+                type: "Phone Report",
+                complexity: "Low",
+                docText: "Phone call from caregiver\nDate: 2025-08-01\n\nPatient: C.T. (Female, 6 years)\nDrug: AMOXICILLIN suspension\nEvent: Mild diarrhea and abdominal pain for 2 days; not hospitalized. Resolved.",
+                truth: {
+                    date: "2025-08-01", country: "US", type: "Spontaneous",
+                    init: "CT", age: "6", gen: "Female",
+                    prod: "AMOXICILLIN",
+                    llt: "DIARRHOEA", pt: "Diarrhoea",
+                    serious: "No"
+                }
+            },
+            {
+                id: "AU-2025-607",
+                type: "Clin Trial",
+                complexity: "High",
+                docText: "Clinical trial safety report\nProtocol: AU-TR-01\nDate: 2025-09-10\n\nSubject: AUS-09 (Initials: PZ)\nAge: 49\nSex: Female\nInvestigational Product: BIOLOGIC Y\nEvent: Severe infusion reaction with hypotension; required ICU care. Serious.",
+                truth: {
+                    date: "2025-09-10", country: "AU", type: "Clinical Trial",
+                    init: "PZ", age: "49", gen: "Female",
+                    prod: "BIOLOGIC Y",
+                    llt: "INFUSION REACTION", pt: "Infusion-related reaction",
+                    serious: "Yes"
+                }
+            },
+            {
+                id: "CA-2025-708",
+                type: "Email",
+                complexity: "Low",
+                docText: "Reporting from community pharmacist\nDate: 2025-09-22\n\nPatient: J.D. (M, 33)\nDrug: LEVOTHYROXINE\nEvent: Palpitations and tremor after dose increase. Not admitted; dose reduced and symptoms improved.",
+                truth: {
+                    date: "2025-09-22", country: "CA", type: "Spontaneous",
+                    init: "JD", age: "33", gen: "Male",
+                    prod: "LEVOTHYROXINE",
+                    llt: "PALPITATIONS", pt: "Palpitations",
+                    serious: "No"
+                }
+            }
+        ];
+
+        // MedDRA Mappings
+        const meddraMappings = {
+            "rash": "Rash",
+            "shock": "Anaphylactic shock",
+            "anaphyl": "Anaphylactic shock",
+            "attack": "Myocardial infarction",
+            "infarction": "Myocardial infarction",
+            "myocardial": "Myocardial infarction",
+            "qt": "Electrocardiogram QT prolonged",
+            "seizure": "Febrile convulsion",
+            "bleed": "Gastrointestinal haemorrhage",
+            "haemorrhage": "Gastrointestinal haemorrhage",
+            "hemorrhage": "Gastrointestinal haemorrhage",
+            "nausea": "Nausea",
+            "vomiting": "Nausea",
+            "edema": "Peripheral swelling",
+            "embolism": "Pulmonary embolism",
+            "hepatic": "Hepatic function abnormal",
+            "injury": "Hepatic function abnormal",
+            "diarrhoea": "Diarrhoea",
+            "diarrhea": "Diarrhoea",
+            "infusion": "Infusion-related reaction",
+            "palpitations": "Palpitations"
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            updateStatistics();
+        });
+
+        // View Management
+        function showDashboard() {
+            app.currentView = 'dashboard';
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('workstation-view').classList.add('hidden');
+            updateDashboard();
+            updateStatistics();
+        }
+
+        function showWorkstation() {
+            app.currentView = 'workstation';
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('workstation-view').classList.remove('hidden');
+        }
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Update tab triggers
+            document.querySelectorAll('.tab-trigger').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Case Management
+        function loadCase(caseId) {
+            app.activeCase = caseLibrary.find(c => c.id === caseId);
+            if (!app.activeCase) return;
+
+            // Reset form data
+            app.formData = {
+                date: '',
+                country: '',
+                type: 'Spontaneous',
+                init: '',
+                age: '',
+                gen: '',
+                prod: '',
+                llt: '',
+                pt: '',
+                serious: 'No'
+            };
+
+            // Clear form fields
+            document.getElementById('receipt-date').value = '';
+            document.getElementById('country').value = '';
+            document.getElementById('report-type').value = 'Spontaneous';
+            document.getElementById('patient-initials').value = '';
+            document.getElementById('patient-age').value = '';
+            document.getElementById('patient-gender').value = '';
+            document.getElementById('product-name').value = '';
+            document.getElementById('reported-term').value = '';
+            document.getElementById('meddra-pt').value = '';
+            document.getElementById('seriousness').value = 'No';
+
+            // Load case data
+            document.getElementById('active-case-id').textContent = app.activeCase.id;
+            document.getElementById('source-document').textContent = app.activeCase.docText;
+
+            // Show workstation
+            showWorkstation();
+        }
+
+        // Form Data Management
+        function updateFormData(field, value) {
+            app.formData[field] = value;
+        }
+
+        // Event Listeners for form fields
+        document.getElementById('receipt-date').addEventListener('change', (e) => updateFormData('date', e.target.value));
+        document.getElementById('country').addEventListener('change', (e) => updateFormData('country', e.target.value));
+        document.getElementById('report-type').addEventListener('change', (e) => updateFormData('type', e.target.value));
+        document.getElementById('patient-initials').addEventListener('input', (e) => updateFormData('init', e.target.value));
+        document.getElementById('patient-age').addEventListener('input', (e) => updateFormData('age', e.target.value));
+        document.getElementById('patient-gender').addEventListener('change', (e) => updateFormData('gen', e.target.value));
+        document.getElementById('product-name').addEventListener('input', (e) => updateFormData('prod', e.target.value));
+        document.getElementById('reported-term').addEventListener('input', (e) => updateFormData('llt', e.target.value));
+        document.getElementById('seriousness').addEventListener('change', (e) => updateFormData('serious', e.target.value));
+
+        // Auto-code functionality
+        function autoCode() {
+            const term = document.getElementById('reported-term').value.toLowerCase();
+            let codedPT = "Uncoded Term (Check Spelling)";
+            
+            for (const [key, value] of Object.entries(meddraMappings)) {
+                if (term.includes(key)) {
+                    codedPT = value;
+                    break;
+                }
+            }
+            
+            document.getElementById('meddra-pt').value = codedPT;
+            updateFormData('pt', codedPT);
+        }
+
+        // QC Functionality
+        function runQC() {
+            if (!app.activeCase) return;
+
+            const results = [];
+            let errors = 0;
+
+            const fields = [
+                { key: 'date', label: 'Receipt Date', id: 'receipt-date' },
+                { key: 'country', label: 'Country', id: 'country' },
+                { key: 'type', label: 'Report Type', id: 'report-type' },
+                { key: 'init', label: 'Initials', id: 'patient-initials' },
+                { key: 'age', label: 'Age', id: 'patient-age' },
+                { key: 'gen', label: 'Gender', id: 'patient-gender' },
+                { key: 'prod', label: 'Product', id: 'product-name' },
+                { key: 'serious', label: 'Seriousness', id: 'seriousness' }
+            ];
+
+            fields.forEach(field => {
+                const userVal = app.formData[field.key].trim();
+                const trueVal = app.activeCase.truth[field.key];
+                
+                let isMatch = false;
+                if (field.key === 'init' && trueVal === 'UNKNOWN' && userVal === '') {
+                    isMatch = true;
+                } else if (userVal.toLowerCase() === String(trueVal).toLowerCase()) {
+                    isMatch = true;
+                }
+
+                results.push({
+                    field: field.id,
+                    label: field.label,
+                    actual: userVal || '(empty)',
+                    expected: String(trueVal),
+                    isCorrect: isMatch
+                });
+
+                if (!isMatch) errors++;
+            });
+
+            // Check MedDRA PT separately
+            const ptMatch = app.formData.pt.toLowerCase() === app.activeCase.truth.pt.toLowerCase();
+            results.push({
+                field: 'meddra-pt',
+                label: 'MedDRA PT',
+                actual: app.formData.pt || '(empty)',
+                expected: app.activeCase.truth.pt,
+                isCorrect: ptMatch
+            });
+
+            if (!ptMatch) errors++;
+
+            // Update QC modal
+            const accuracy = Math.round(((results.length - errors) / results.length) * 100);
+            document.getElementById('qc-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('qc-summary-message').textContent = 
+                errors === 0 ? "Perfect! All fields match the source document." : `${errors} field(s) need correction.`;
+
+            // Generate QC results HTML
+            const qcResultsContainer = document.getElementById('qc-results');
+            qcResultsContainer.innerHTML = '';
+
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `qc-item ${result.isCorrect ? 'qc-item-correct' : 'qc-item-incorrect'}`;
+                
+                resultDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5">
+                            ${result.isCorrect ? 
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>' : 
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'
+                            }
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-medium text-slate-900">${result.label}</h4>
+                                <span class="badge ${result.isCorrect ? 'badge-green' : 'badge-red'}">
+                                    ${result.isCorrect ? 'Correct' : 'Incorrect'}
+                                </span>
+                            </div>
+                            
+                            ${!result.isCorrect ? `
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-600">Your entry:</span>
+                                        <span class="qc-field-value qc-value-actual">${result.actual}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-600">Expected:</span>
+                                        <span class="qc-field-value qc-value-expected">${result.expected}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                qcResultsContainer.appendChild(resultDiv);
+            });
+
+            // Show/hide proceed to save button
+            const proceedBtn = document.getElementById('proceed-save-btn');
+            if (errors === 0) {
+                proceedBtn.classList.remove('hidden');
+            } else {
+                proceedBtn.classList.add('hidden');
+            }
+
+            // Show modal
+            document.getElementById('qc-modal').classList.remove('hidden');
+        }
+
+        function closeQCModal() {
+            document.getElementById('qc-modal').classList.add('hidden');
+        }
+
+        function proceedToSave() {
+            closeQCModal();
+            saveAndClose();
+        }
+
+        // Save and Close
+        function saveAndClose() {
+            if (!app.activeCase) return;
+
+            // Calculate score
+            const correctFields = [];
+            const fields = ['date', 'country', 'type', 'init', 'age', 'gen', 'prod', 'serious'];
+            
+            fields.forEach(field => {
+                const userVal = app.formData[field].trim();
+                const trueVal = app.activeCase.truth[field];
+                
+                if (field === 'init' && trueVal === 'UNKNOWN' && userVal === '') {
+                    correctFields.push(true);
+                } else if (userVal.toLowerCase() === String(trueVal).toLowerCase()) {
+                    correctFields.push(true);
+                }
+            });
+
+            const ptMatch = app.formData.pt.toLowerCase() === app.activeCase.truth.pt.toLowerCase();
+            correctFields.push(ptMatch);
+
+            const score = Math.round((correctFields.filter(Boolean).length / (fields.length + 1)) * 100);
+            
+            // Add to completed cases
+            app.completedCases.push({
+                id: app.activeCase.id,
+                pat: app.formData.init || 'UNK',
+                prod: app.formData.prod,
+                score: score,
+                completedAt: new Date()
+            });
+
+            // Show success message
+            alert(`Case Saved Successfully! Score: ${score}%`);
+
+            // Return to dashboard
+            showDashboard();
+        }
+
+        // Dashboard Updates
+        function updateDashboard() {
+            // Update pending cases
+            const pendingCases = caseLibrary.filter(
+                case_ => !app.completedCases.some(completed => completed.id === case_.id)
+            );
+
+            const pendingContainer = document.getElementById('pending-cases-container');
+            
+            if (pendingCases.length === 0) {
+                pendingContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <p class="text-lg font-medium">All cases completed!</p>
+                        <p class="text-sm">Great job on finishing all available cases.</p>
+                    </div>
+                `;
+            } else {
+                let tableHTML = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Source Type</th>
+                                <th>Complexity</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                pendingCases.forEach(case_ => {
+                    const complexityClass = case_.complexity === 'Low' ? 'complexity-low' : 
+                                           case_.complexity === 'Medium' ? 'complexity-medium' : 'complexity-high';
+                    
+                    tableHTML += `
+                        <tr>
+                            <td class="font-medium">${case_.id}</td>
+                            <td>${case_.type}</td>
+                            <td><span class="badge ${complexityClass}">${case_.complexity}</span></td>
+                            <td class="text-right">
+                                <button class="btn btn-primary btn-sm" onclick="loadCase('${case_.id}')">Start Case</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+
+                pendingContainer.innerHTML = tableHTML;
+            }
+
+            // Update completed cases
+            const completedContainer = document.getElementById('completed-cases-container');
+            
+            if (app.completedCases.length === 0) {
+                completedContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <p>No cases completed yet.</p>
+                    </div>
+                `;
+            } else {
+                let tableHTML = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Patient</th>
+                                <th>Product</th>
+                                <th>Accuracy Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                app.completedCases.forEach(case_ => {
+                    const scoreClass = case_.score === 100 ? 'badge-green' : 'badge-yellow';
+                    
+                    tableHTML += `
+                        <tr>
+                            <td class="font-medium">${case_.id}</td>
+                            <td>${case_.pat}</td>
+                            <td>${case_.prod}</td>
+                            <td><span class="badge ${scoreClass}">${case_.score}%</span></td>
+                            <td><span class="badge badge-green">Locked</span></td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+
+                completedContainer.innerHTML = tableHTML;
+            }
+        }
+
+        function updateStatistics() {
+            const totalCases = caseLibrary.length;
+            const completedCases = app.completedCases.length;
+            const pendingCases = totalCases - completedCases;
+            const avgScore = completedCases > 0 ? 
+                Math.round(app.completedCases.reduce((sum, c) => sum + c.score, 0) / completedCases) : 0;
+
+            document.getElementById('total-cases').textContent = totalCases;
+            document.getElementById('completed-cases').textContent = completedCases;
+            document.getElementById('pending-cases').textContent = pendingCases;
+            document.getElementById('avg-score').textContent = `${avgScore}%`;
+        }
+    </script>
+</body>
+</html>
